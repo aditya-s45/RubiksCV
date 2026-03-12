@@ -94,3 +94,4 @@ Start the Flask web server:
 4. **Review Phase**: Verify the colors. The backend instantly calculates the most optimal path using the C++ Two-Phase algorithm!
 5. **Solve Phase**: Follow the beautiful dynamic SVG arrows to solve your cube step-by-step. Use the **Prev** and **Next Move** buttons to navigate through the history easily!
 
+
