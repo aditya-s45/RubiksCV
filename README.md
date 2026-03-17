@@ -95,3 +95,4 @@ Start the Flask web server:
 5. **Solve Phase**: Follow the beautiful dynamic SVG arrows to solve your cube step-by-step. Use the **Prev** and **Next Move** buttons to navigate through the history easily!
 
 
+
