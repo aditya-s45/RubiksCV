@@ -93,13 +93,3 @@ Start the Flask web server:
 3. Once all 6 faces are captured successfully, click **Solve Cube**.
 4. **Review Phase**: Verify the colors. The backend instantly calculates the most optimal path using the C++ Two-Phase algorithm!
 5. **Solve Phase**: Follow the beautiful dynamic SVG arrows to solve your cube step-by-step. Use the **Prev** and **Next Move** buttons to navigate through the history easily!
-
-
-
-
-
-
-
-
-
-
