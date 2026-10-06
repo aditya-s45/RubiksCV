@@ -134,6 +134,7 @@ def classify_colors():
         colors = []
         positions = []
         
+        tensors = []
         for i in range(GRID_SIZE):
             for j in range(GRID_SIZE):
                 x = center_x + (j - 1) * SPACING
@@ -153,16 +154,17 @@ def classify_colors():
                     crop = cv2.resize(crop, (32, 32))
                 
                 pil_img = Image.fromarray(crop)
-                tensor = transform(pil_img).unsqueeze(0).to(device)
-                
-                with torch.no_grad():
-                    outputs = model(tensor)
-                    _, predicted = torch.max(outputs, 1)
-                    pred_idx = predicted.item()
-                    color = COLOR_MAP.get(pred_idx, "W")
-                
-                colors.append(color)
+                tensors.append(transform(pil_img))
                 positions.append({'x': int(x), 'y': int(y)})
+        
+        # Perform batched tensor inference (shape: [9, 3, 32, 32])
+        batch_tensor = torch.stack(tensors).to(device)
+        with torch.no_grad():
+            outputs = model(batch_tensor)
+            _, predicted = torch.max(outputs, 1)
+        
+        for pred_idx in predicted:
+            colors.append(COLOR_MAP.get(pred_idx.item(), "W"))
         
         result = {
             'colors': colors,

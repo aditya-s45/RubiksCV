@@ -92,7 +92,6 @@ class StickerNet(nn.Module):
 
 def train():
     print("Generating updated synthetic dataset...")
-    # REMOVED hue jitter to prevent green shifting to yellow
     transform = transforms.Compose([
         transforms.ColorJitter(brightness=0.6, contrast=0.5, saturation=0.5, hue=0.02),
         transforms.GaussianBlur(kernel_size=3, sigma=(0.1, 2.0)),
@@ -100,8 +99,14 @@ def train():
         transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
     ])
     
-    train_dataset = SyntheticRubiksDataset(25000, transform=transform)
+    full_dataset = SyntheticRubiksDataset(25000, transform=transform)
+    
+    train_size = int(0.8 * len(full_dataset))
+    val_size = len(full_dataset) - train_size
+    train_dataset, val_dataset = torch.utils.data.random_split(full_dataset, [train_size, val_size])
+    
     train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
+    val_loader = DataLoader(val_dataset, batch_size=64, shuffle=False)
     
     device = torch.device("cuda" if torch.cuda.is_available() else "mps" if torch.backends.mps.is_available() else "cpu")
     print(f"Training on device: {device}")
@@ -131,7 +136,21 @@ def train():
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
             
-        print(f"Epoch {epoch+1}/{epochs}, Loss: {running_loss/len(train_loader):.4f}, Accuracy: {100 * correct / total:.2f}%")
+        train_acc = 100 * correct / total
+        
+        model.eval()
+        val_correct = 0
+        val_total = 0
+        with torch.no_grad():
+            for inputs, labels in val_loader:
+                inputs, labels = inputs.to(device), labels.to(device)
+                outputs = model(inputs)
+                _, predicted = torch.max(outputs.data, 1)
+                val_total += labels.size(0)
+                val_correct += (predicted == labels).sum().item()
+        
+        val_acc = 100 * val_correct / val_total
+        print(f"Epoch {epoch+1}/{epochs}, Loss: {running_loss/len(train_loader):.4f}, Train Acc: {train_acc:.2f}%, Val Acc: {val_acc:.2f}%")
         
     print("Training complete. Saving model...")
     torch.save(model.state_dict(), "sticker_net.pth")
